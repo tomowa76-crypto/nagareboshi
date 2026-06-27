@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ながれぼし</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;700&display=swap');
+
+  :root {
+    --bg: #0f0f14;
+    --surface: #1a1a24;
+    --surface2: #22222f;
+    --accent: #c8a8f0;
+    --accent2: #8fd4c8;
+    --text: #e8e6f0;
+    --text-muted: #7a7890;
+    --border: #2e2e42;
+    --genre-colors: #c8a8f0, #8fd4c8, #f0c8a8, #a8c8f0, #f0a8c8, #c8f0a8, #f0e6a8, #a8a8f0, #f0a8a8, #b0b0c8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+  }
+
+  /* ヘッダー */
+  header {
+    padding: 20px 16px 12px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 100;
+    backdrop-filter: blur(8px);
+  }
+
+  .header-top {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.12em;
+  }
+
+  /* 入力エリア */
+  .input-area {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  #urlInput {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  #urlInput:focus {
+    border-color: var(--accent);
+  }
+
+  #urlInput::placeholder {
+    color: var(--text-muted);
+  }
+
+  #saveBtn {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    color: #0f0f14;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+
+  #saveBtn:active { transform: scale(0.96); }
+  #saveBtn:disabled { opacity: 0.4; cursor: default; }
+
+  /* ステータス */
+  #status {
+    font-size: 12px;
+    padding: 6px 0 0;
+    min-height: 20px;
+    color: var(--accent2);
+    letter-spacing: 0.05em;
+  }
+
+  #status.error { color: #f0a8a8; }
+
+  /* フィルター */
+  .filter-bar {
+    padding: 12px 16px;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .filter-bar::-webkit-scrollbar { display: none; }
+
+  .filter-chip {
+    flex-shrink: 0;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .filter-chip.active {
+    background: var(--surface2);
+    color: var(--text);
+    border-color: var(--accent);
+  }
+
+  /* カードグリッド */
+  #cards {
+    padding: 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  @media (min-width: 600px) {
+    #cards { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  /* カード */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.2s;
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+  }
+
+  .card:active { transform: scale(0.97); }
+  .card:hover { border-color: var(--accent); }
+
+  .card-image {
+    width: 100%;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    background: var(--surface2);
+    display: block;
+  }
+
+  .card-image-placeholder {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
+
+  .card-body {
+    padding: 10px 12px 12px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .card-genre {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 2px 7px;
+    border-radius: 4px;
+    display: inline-block;
+    align-self: flex-start;
+    background: var(--surface2);
+  }
+
+  .card-title {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--text);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-site {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: auto;
+    padding-top: 4px;
+  }
+
+  .card-date {
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  /* 空状態 */
+  #empty {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 2;
+  }
+
+  /* ローディング */
+  .loading-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    aspect-ratio: 3/4;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* ジャンル色マッピング */
+  .genre-0 { color: #c8a8f0; }
+  .genre-1 { color: #8fd4c8; }
+  .genre-2 { color: #f0c8a8; }
+  .genre-3 { color: #a8c8f0; }
+  .genre-4 { color: #f0a8c8; }
+  .genre-5 { color: #c8f0a8; }
+  .genre-6 { color: #f0e6a8; }
+  .genre-7 { color: #a8a8f0; }
+  .genre-8 { color: #f0a8a8; }
+  .genre-9 { color: #b0b0c8; }
+
+  .count-badge {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-left: 2px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <h1>ながれぼし</h1>
+    <span class="subtitle">気になるものを流れ星に</span>
+  </div>
+  <div class="input-area">
+    <input type="url" id="urlInput" placeholder="URLを貼り付けてください" autocomplete="off" autocorrect="off" spellcheck="false">
+    <button id="saveBtn">保存</button>
+  </div>
+  <div id="status"></div>
+</header>
+
+<div class="filter-bar" id="filterBar">
+  <button class="filter-chip active" data-genre="all">すべて</button>
+</div>
+
+<div id="cards">
+  <div class="loading-card"></div>
+  <div class="loading-card"></div>
+  <div class="loading-card"></div>
+  <div class="loading-card"></div>
+</div>
+
+<script>
+  // ===== 設定 =====
+  const GAS_URL = 'ここにGASのWebアプリURLを貼る'; // ← デプロイ後に変更
+
+  const GENRES = [
+    'お店・グルメ', '本・読書', 'アート・イラスト', 'レシピ・料理',
+    '社会・政治', 'ファッション・インテリア', '旅行・おでかけ',
+    '学び・考察', 'エンタメ・推し', 'その他'
+  ];
+
+  const GENRE_EMOJI = {
+    'お店・グルメ': '🍽️', '本・読書': '📚', 'アート・イラスト': '🎨',
+    'レシピ・料理': '🥘', '社会・政治': '📣', 'ファッション・インテリア': '✨',
+    '旅行・おでかけ': '🗺️', '学び・考察': '💡', 'エンタメ・推し': '⭐',
+    'その他': '📌'
+  };
+
+  let allLinks = [];
+  let activeGenre = 'all';
+
+  // ===== 初期ロード =====
+  async function loadLinks() {
+    try {
+      const res = await fetch(`${GAS_URL}?action=list`);
+      const data = await res.json();
+      allLinks = data.links || [];
+      renderFilterBar();
+      renderCards();
+    } catch (e) {
+      document.getElementById('cards').innerHTML = `<div id="empty">読み込みに失敗しました<br><small>${e.message}</small></div>`;
+    }
+  }
+
+  // ===== URL保存 =====
+  async function saveUrl() {
+    const input = document.getElementById('urlInput');
+    const url = input.value.trim();
+    const btn = document.getElementById('saveBtn');
+    const status = document.getElementById('status');
+
+    if (!url) return;
+
+    btn.disabled = true;
+    status.className = '';
+    status.textContent = '⏳ 解析中...（数秒かかります）';
+
+    try {
+      const res = await fetch(GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      });
+      const data = await res.json();
+
+      if (data.status === 'ok') {
+        status.textContent = '✓ 保存しました';
+        input.value = '';
+        await loadLinks();
+      } else {
+        throw new Error(data.message || 'エラーが発生しました');
+      }
+    } catch (e) {
+      status.className = 'error';
+      status.textContent = `✗ ${e.message}`;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ===== フィルターバー =====
+  function renderFilterBar() {
+    const bar = document.getElementById('filterBar');
+    const genreCounts = {};
+    allLinks.forEach(l => {
+      genreCounts[l.genre] = (genreCounts[l.genre] || 0) + 1;
+    });
+
+    const existingGenres = GENRES.filter(g => genreCounts[g]);
+
+    bar.innerHTML = `<button class="filter-chip ${activeGenre === 'all' ? 'active' : ''}" data-genre="all">すべて <span class="count-badge">${allLinks.length}</span></button>`;
+
+    existingGenres.forEach((g, i) => {
+      const idx = GENRES.indexOf(g);
+      bar.innerHTML += `<button class="filter-chip ${activeGenre === g ? 'active' : ''} genre-${idx}" data-genre="${g}">${GENRE_EMOJI[g] || ''} ${g} <span class="count-badge">${genreCounts[g]}</span></button>`;
+    });
+
+    bar.querySelectorAll('.filter-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeGenre = btn.dataset.genre;
+        bar.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderCards();
+      });
+    });
+  }
+
+  // ===== カード描画 =====
+  function renderCards() {
+    const container = document.getElementById('cards');
+    const filtered = activeGenre === 'all' ? allLinks : allLinks.filter(l => l.genre === activeGenre);
+
+    if (filtered.length === 0) {
+      container.innerHTML = `<div id="empty">${activeGenre === 'all' ? 'まだ保存されていません<br>URLを貼り付けてみてください' : 'このジャンルはまだありません'}</div>`;
+      return;
+    }
+
+    // 新しい順
+    const sorted = [...filtered].reverse();
+
+    container.innerHTML = sorted.map(link => {
+      const genreIdx = GENRES.indexOf(link.genre);
+      const emoji = GENRE_EMOJI[link.genre] || '📌';
+      const date = link.savedAt ? new Date(link.savedAt).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' }) : '';
+      const imageHtml = link.image
+        ? `<img class="card-image" src="${escHtml(link.image)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+        + `<div class="card-image-placeholder" style="display:none">${emoji}</div>`
+        : `<div class="card-image-placeholder">${emoji}</div>`;
+
+      return `
+        <a class="card" href="${escHtml(link.url)}" target="_blank" rel="noopener">
+          ${imageHtml}
+          <div class="card-body">
+            <span class="card-genre genre-${genreIdx}">${emoji} ${escHtml(link.genre)}</span>
+            <div class="card-title">${escHtml(link.title || link.url)}</div>
+            <div class="card-site">${escHtml(link.siteName || getDomain(link.url))}</div>
+            <div class="card-date">${date}</div>
+          </div>
+        </a>`;
+    }).join('');
+  }
+
+  function escHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function getDomain(url) {
+    try { return new URL(url).hostname.replace('www.', ''); } catch { return ''; }
+  }
+
+  // ===== イベント =====
+  document.getElementById('saveBtn').addEventListener('click', saveUrl);
+  document.getElementById('urlInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') saveUrl();
+  });
+
+  // ページ読み込み時
+  loadLinks();
+</script>
+</body>
+</html>
