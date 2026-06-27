@@ -16,7 +16,6 @@
     --text: #e8e6f0;
     --text-muted: #7a7890;
     --border: #2e2e42;
-    --genre-colors: #c8a8f0, #8fd4c8, #f0c8a8, #a8c8f0, #f0a8c8, #c8f0a8, #f0e6a8, #a8a8f0, #f0a8a8, #b0b0c8;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -29,7 +28,6 @@
     min-height: 100vh;
   }
 
-  /* ヘッダー */
   header {
     padding: 20px 16px 12px;
     border-bottom: 1px solid var(--border);
@@ -37,7 +35,6 @@
     top: 0;
     background: var(--bg);
     z-index: 100;
-    backdrop-filter: blur(8px);
   }
 
   .header-top {
@@ -63,7 +60,6 @@
     letter-spacing: 0.12em;
   }
 
-  /* 入力エリア */
   .input-area {
     display: flex;
     gap: 8px;
@@ -83,13 +79,8 @@
     transition: border-color 0.2s;
   }
 
-  #urlInput:focus {
-    border-color: var(--accent);
-  }
-
-  #urlInput::placeholder {
-    color: var(--text-muted);
-  }
+  #urlInput:focus { border-color: var(--accent); }
+  #urlInput::placeholder { color: var(--text-muted); }
 
   #saveBtn {
     background: linear-gradient(135deg, var(--accent), var(--accent2));
@@ -108,7 +99,6 @@
   #saveBtn:active { transform: scale(0.96); }
   #saveBtn:disabled { opacity: 0.4; cursor: default; }
 
-  /* ステータス */
   #status {
     font-size: 12px;
     padding: 6px 0 0;
@@ -119,7 +109,6 @@
 
   #status.error { color: #f0a8a8; }
 
-  /* フィルター */
   .filter-bar {
     padding: 12px 16px;
     display: flex;
@@ -151,7 +140,6 @@
     border-color: var(--accent);
   }
 
-  /* カードグリッド */
   #cards {
     padding: 16px;
     display: grid;
@@ -163,7 +151,6 @@
     #cards { grid-template-columns: repeat(3, 1fr); }
   }
 
-  /* カード */
   .card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -218,7 +205,6 @@
 
   .card-title {
     font-size: 12px;
-    font-weight: 400;
     line-height: 1.5;
     color: var(--text);
     display: -webkit-box;
@@ -234,12 +220,8 @@
     padding-top: 4px;
   }
 
-  .card-date {
-    font-size: 10px;
-    color: var(--text-muted);
-  }
+  .card-date { font-size: 10px; color: var(--text-muted); }
 
-  /* 空状態 */
   #empty {
     grid-column: 1/-1;
     text-align: center;
@@ -249,7 +231,6 @@
     line-height: 2;
   }
 
-  /* ローディング */
   .loading-card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -263,7 +244,6 @@
     50% { opacity: 0.4; }
   }
 
-  /* ジャンル色マッピング */
   .genre-0 { color: #c8a8f0; }
   .genre-1 { color: #8fd4c8; }
   .genre-2 { color: #f0c8a8; }
@@ -275,11 +255,7 @@
   .genre-8 { color: #f0a8a8; }
   .genre-9 { color: #b0b0c8; }
 
-  .count-badge {
-    font-size: 10px;
-    color: var(--text-muted);
-    margin-left: 2px;
-  }
+  .count-badge { font-size: 10px; color: var(--text-muted); margin-left: 2px; }
 </style>
 </head>
 <body>
@@ -308,8 +284,9 @@
 </div>
 
 <script>
-  // ===== 設定 =====
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxjYo1Y3o5VW-fXGMQQTFvPknBawtEcxj9ioS1lIRT7wcNXvmiGODHjelfpS9-wZX_x/exec';  const GENRES = [
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbxjYo1Y3o5VW-fXGMQQTFvPknBawtEcxj9ioS1lIRT7wcNXvmiGODHjelfpS9-wZX_x/exec';
+
+  const GENRES = [
     'お店・グルメ', '本・読書', 'アート・イラスト', 'レシピ・料理',
     '社会・政治', 'ファッション・インテリア', '旅行・おでかけ',
     '学び・考察', 'エンタメ・推し', 'その他'
@@ -325,20 +302,19 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbxjYo1Y3o5VW-fXGMQQTFvP
   let allLinks = [];
   let activeGenre = 'all';
 
-  // ===== 初期ロード =====
+  // GASはPOSTのCORSが通らないのでGETパラメータで送る
   async function loadLinks() {
     try {
-      const res = await fetch(`${GAS_URL}?action=list`);
+      const res = await fetch(GAS_URL + '?action=list');
       const data = await res.json();
       allLinks = data.links || [];
       renderFilterBar();
       renderCards();
     } catch (e) {
-      document.getElementById('cards').innerHTML = `<div id="empty">読み込みに失敗しました<br><small>${e.message}</small></div>`;
+      document.getElementById('cards').innerHTML = '<div id="empty">読み込みに失敗しました<br><small>' + e.message + '</small></div>';
     }
   }
 
-  // ===== URL保存 =====
   async function saveUrl() {
     const input = document.getElementById('urlInput');
     const url = input.value.trim();
@@ -352,43 +328,37 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbxjYo1Y3o5VW-fXGMQQTFvP
     status.textContent = '⏳ 解析中...（数秒かかります）';
 
     try {
-      const res = await fetch(GAS_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url }),
-      });
+      // GASはno-corsでGETパラメータ送信
+      const encodedUrl = encodeURIComponent(url);
+      const res = await fetch(GAS_URL + '?action=save&url=' + encodedUrl);
       const data = await res.json();
 
       if (data.status === 'ok') {
         status.textContent = '✓ 保存しました';
         input.value = '';
-        await loadLinks();
+        setTimeout(loadLinks, 1000);
       } else {
         throw new Error(data.message || 'エラーが発生しました');
       }
     } catch (e) {
       status.className = 'error';
-      status.textContent = `✗ ${e.message}`;
+      status.textContent = '✗ ' + e.message;
     } finally {
       btn.disabled = false;
     }
   }
 
-  // ===== フィルターバー =====
   function renderFilterBar() {
     const bar = document.getElementById('filterBar');
     const genreCounts = {};
-    allLinks.forEach(l => {
-      genreCounts[l.genre] = (genreCounts[l.genre] || 0) + 1;
-    });
-
+    allLinks.forEach(l => { genreCounts[l.genre] = (genreCounts[l.genre] || 0) + 1; });
     const existingGenres = GENRES.filter(g => genreCounts[g]);
 
-    bar.innerHTML = `<button class="filter-chip ${activeGenre === 'all' ? 'active' : ''}" data-genre="all">すべて <span class="count-badge">${allLinks.length}</span></button>`;
+    bar.innerHTML = '<button class="filter-chip ' + (activeGenre === 'all' ? 'active' : '') + '" data-genre="all">すべて <span class="count-badge">' + allLinks.length + '</span></button>';
 
-    existingGenres.forEach((g, i) => {
+    existingGenres.forEach(g => {
       const idx = GENRES.indexOf(g);
-      bar.innerHTML += `<button class="filter-chip ${activeGenre === g ? 'active' : ''} genre-${idx}" data-genre="${g}">${GENRE_EMOJI[g] || ''} ${g} <span class="count-badge">${genreCounts[g]}</span></button>`;
+      bar.innerHTML += '<button class="filter-chip ' + (activeGenre === g ? 'active' : '') + ' genre-' + idx + '" data-genre="' + g + '">' + (GENRE_EMOJI[g] || '') + ' ' + g + ' <span class="count-badge">' + genreCounts[g] + '</span></button>';
     });
 
     bar.querySelectorAll('.filter-chip').forEach(btn => {
@@ -401,17 +371,15 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbxjYo1Y3o5VW-fXGMQQTFvP
     });
   }
 
-  // ===== カード描画 =====
   function renderCards() {
     const container = document.getElementById('cards');
     const filtered = activeGenre === 'all' ? allLinks : allLinks.filter(l => l.genre === activeGenre);
 
     if (filtered.length === 0) {
-      container.innerHTML = `<div id="empty">${activeGenre === 'all' ? 'まだ保存されていません<br>URLを貼り付けてみてください' : 'このジャンルはまだありません'}</div>`;
+      container.innerHTML = '<div id="empty">' + (activeGenre === 'all' ? 'まだ保存されていません<br>URLを貼り付けてみてください' : 'このジャンルはまだありません') + '</div>';
       return;
     }
 
-    // 新しい順
     const sorted = [...filtered].reverse();
 
     container.innerHTML = sorted.map(link => {
@@ -419,24 +387,21 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbxjYo1Y3o5VW-fXGMQQTFvP
       const emoji = GENRE_EMOJI[link.genre] || '📌';
       const date = link.savedAt ? new Date(link.savedAt).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' }) : '';
       const imageHtml = link.image
-        ? `<img class="card-image" src="${escHtml(link.image)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
-        + `<div class="card-image-placeholder" style="display:none">${emoji}</div>`
-        : `<div class="card-image-placeholder">${emoji}</div>`;
+        ? '<img class="card-image" src="' + esc(link.image) + '" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' + '<div class="card-image-placeholder" style="display:none">' + emoji + '</div>'
+        : '<div class="card-image-placeholder">' + emoji + '</div>';
 
-      return `
-        <a class="card" href="${escHtml(link.url)}" target="_blank" rel="noopener">
-          ${imageHtml}
-          <div class="card-body">
-            <span class="card-genre genre-${genreIdx}">${emoji} ${escHtml(link.genre)}</span>
-            <div class="card-title">${escHtml(link.title || link.url)}</div>
-            <div class="card-site">${escHtml(link.siteName || getDomain(link.url))}</div>
-            <div class="card-date">${date}</div>
-          </div>
-        </a>`;
+      return '<a class="card" href="' + esc(link.url) + '" target="_blank" rel="noopener">' +
+        imageHtml +
+        '<div class="card-body">' +
+        '<span class="card-genre genre-' + genreIdx + '">' + emoji + ' ' + esc(link.genre) + '</span>' +
+        '<div class="card-title">' + esc(link.title || link.url) + '</div>' +
+        '<div class="card-site">' + esc(link.siteName || getDomain(link.url)) + '</div>' +
+        '<div class="card-date">' + date + '</div>' +
+        '</div></a>';
     }).join('');
   }
 
-  function escHtml(str) {
+  function esc(str) {
     if (!str) return '';
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
@@ -445,13 +410,11 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbxjYo1Y3o5VW-fXGMQQTFvP
     try { return new URL(url).hostname.replace('www.', ''); } catch { return ''; }
   }
 
-  // ===== イベント =====
   document.getElementById('saveBtn').addEventListener('click', saveUrl);
   document.getElementById('urlInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') saveUrl();
   });
 
-  // ページ読み込み時
   loadLinks();
 </script>
 </body>
