@@ -220,7 +220,30 @@
     padding-top: 4px;
   }
 
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: 4px;
+  }
+
   .card-date { font-size: 10px; color: var(--text-muted); }
+
+  .delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    opacity: 0;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: opacity 0.2s, background 0.2s;
+    line-height: 1;
+  }
+
+  .card:hover .delete-btn { opacity: 1; }
+  .delete-btn:hover { background: rgba(240,168,168,0.2); }
 
   #empty {
     grid-column: 1/-1;
@@ -396,9 +419,31 @@
         '<span class="card-genre genre-' + genreIdx + '">' + emoji + ' ' + esc(link.genre) + '</span>' +
         '<div class="card-title">' + esc(link.title || link.url) + '</div>' +
         '<div class="card-site">' + esc(link.siteName || getDomain(link.url)) + '</div>' +
-        '<div class="card-date">' + date + '</div>' +
+        '<div class="card-footer">' +
+        '<span class="card-date">' + date + '</span>' +
+        '<button class="delete-btn" data-id="' + esc(String(link.id)) + '" onclick="event.preventDefault();deleteLink(this)">🗑️</button>' +
+        '</div>' +
         '</div></a>';
     }).join('');
+  }
+
+  async function deleteLink(btn) {
+    const id = btn.dataset.id;
+    if (!confirm('削除しますか？')) return;
+    btn.textContent = '⏳';
+    try {
+      const res = await fetch(GAS_URL + '?action=delete&id=' + encodeURIComponent(id));
+      const data = await res.json();
+      if (data.status === 'ok') {
+        await loadLinks();
+      } else {
+        alert('削除に失敗しました: ' + data.message);
+        btn.textContent = '🗑️';
+      }
+    } catch(e) {
+      alert('エラー: ' + e.message);
+      btn.textContent = '🗑️';
+    }
   }
 
   function esc(str) {
